@@ -353,11 +353,17 @@ if __name__ == '__main__':
         Resnet.eval()
         """ datasets """
         
-        # img_path = "/mnt/HDD1/chiawei/datasets/LFW/lfw_correct_aligned"
-        img_path = "/mnt/SSD7/yuwei/face/XQLFW/xqlfw_aligned_112"
+        
+        
         # img_path = "/DISK2/chiawei/LFW/lfw_correct_aligned_random_margin_padding_0.6/"
-        # pair_txt_path = "/mnt/HDD1/chiawei/datasets/LFW/LFW_pairs.txt"
-        pair_txt_path = "/mnt/SSD7/yuwei/face/XQLFW/xqlfw_pairs.txt"
+
+        # lfw
+        img_path = "/mnt/HDD1/chiawei/datasets/LFW/lfw_correct_aligned"
+        pair_txt_path = "/mnt/HDD1/chiawei/datasets/LFW/LFW_pairs.txt"
+
+        #xqlfw
+        # img_path = "/mnt/SSD7/yuwei/face/XQLFW/xqlfw_aligned_112"
+        # pair_txt_path = "/mnt/SSD7/yuwei/face/XQLFW/xqlfw_pairs.txt"
 
         lfw = LFW(img_path, pair_txt_path, LR_resolution=112, match_at_LR=False)
 

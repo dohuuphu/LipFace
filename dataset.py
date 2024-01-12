@@ -18,6 +18,8 @@ from utils.utils_distributed_sampler import get_dist_info, worker_init_fn
 import PIL
 import random
 from io import BytesIO
+from PIL import Image, ImageFilter
+
 
 def get_dataloader(
     root_dir,
@@ -190,7 +192,10 @@ class MXFaceDataset(Dataset):
         sample = transforms.ToPILImage()(sample) # PIL RGB
         # img_lip = list()
         # img_lip = [augmentation(sample)]# for _ in range(self.num_img_lip)] # [imgLR1, imgLR2, imgLR3]
+
         img_lip = [surveillance_augmentation(sample) for _ in range(self.num_img_lip)]
+        # img_lip = [new_degradation(sample) for _ in range(self.num_img_lip)]
+
         img_lip.insert(0, sample) # [imgHR, imgLR1, imgLR2, imgLR3]
         
         if self.transform is not None:
@@ -201,6 +206,68 @@ class MXFaceDataset(Dataset):
     def __len__(self):
         return len(self.imgidx)
 
+def new_degradation(img):
+
+    def apply_random_blur(image):
+        # Apply random blur
+        kernel_size = np.random.choice([3, 5, 7])  # Randomly choose kernel size
+        return image.filter(ImageFilter.GaussianBlur(radius=kernel_size))
+
+    def apply_synthetic_noise(image):
+        # Apply synthetic noise
+        image_array = np.array(image)
+        noise = np.random.normal(loc=0, scale=2, size=image_array.shape)
+        noisy_image_array = np.clip(image_array + noise, 0, 255).astype(np.uint8)
+        return Image.fromarray(noisy_image_array)
+    
+    def downscale_bicubic(image, scale_factor):
+        # Downscale by bicubic interpolation
+        width, height = image.size
+        new_width = int(width * scale_factor)
+        new_height = int(height * scale_factor)
+        return image.resize((new_width, new_height), Image.BICUBIC)
+    
+    def make_temp(img):
+        img_array = np.array(img)
+        temp_img  = 1 - img_array
+        temp_img = np.clip(temp_img, 0, 255)
+
+        return Image.fromarray(temp_img.astype(np.uint8))
+    
+    def combine(img1, img2):
+        if img2 is None:
+            return img1
+        img1_array = np.array(img1)
+        img2_array = np.array(img2)
+
+        sum_array = img1_array + img2_array
+
+        sum_array = np.clip(sum_array, 0, 255)
+
+        return Image.fromarray(sum_array.astype(np.uint8))
+
+
+    w, h = img.width, img.height
+    # side_ratio = np.random.uniform(0.1, 1.0) # 11.2 ~ 112
+    side_ratio = np.random.uniform(0.0625, 0.375) # 7 ~ 56
+    # temp_1 = make_temp(img)
+
+    img = apply_random_blur(img)
+
+    p2 = combine(img, None)
+
+    # temp_2 = make_temp(p2)
+
+    p3 = combine(apply_synthetic_noise(p2), None)
+
+    # temp_3 = make_temp(p3)
+
+    # add compression noise
+    aug_img = combine(random_JPEG_compression(p3), None)
+
+    aug_img = downscale_bicubic(aug_img, side_ratio)
+    
+    return aug_img
 
 def augmentation(img):
     """ resize the image to a small size, add compression noise, and enlarge it back """
