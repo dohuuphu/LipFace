@@ -1,0 +1,6 @@
+export WORLD_SIZE=1
+export RANK=0
+export PORT=12345
+export LOCAL_RANK=0
+export MASTER_ADDR=127.0.0.1  # Set this to the address of the master process
+export MASTER_PORT=12345 

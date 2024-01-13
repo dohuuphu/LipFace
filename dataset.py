@@ -192,9 +192,10 @@ class MXFaceDataset(Dataset):
         sample = transforms.ToPILImage()(sample) # PIL RGB
         # img_lip = list()
         # img_lip = [augmentation(sample)]# for _ in range(self.num_img_lip)] # [imgLR1, imgLR2, imgLR3]
-
-        img_lip = [surveillance_augmentation(sample) for _ in range(self.num_img_lip)]
-        # img_lip = [new_degradation(sample) for _ in range(self.num_img_lip)]
+        if bool(random.getrandbits(1)):
+            img_lip = [surveillance_augmentation(sample) for _ in range(self.num_img_lip)]
+        else:
+            img_lip = [new_degradation(sample) for _ in range(self.num_img_lip)]
 
         img_lip.insert(0, sample) # [imgHR, imgLR1, imgLR2, imgLR3]
         

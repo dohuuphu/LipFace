@@ -146,21 +146,27 @@ class IResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        attention_map = []
         with torch.cuda.amp.autocast(self.fp16):
             x = self.conv1(x)
             x = self.bn1(x)
             x = self.prelu(x)
             x = self.layer1(x)
+            attention_map.append(x.clone().pow(2).mean(1))
             x = self.layer2(x)
+            attention_map.append(x.clone().pow(2).mean(1))
             x = self.layer3(x)
+            attention_map.append(x.clone().pow(2).mean(1))
             x = self.layer4(x)
+            attention_map.append(x.clone().pow(2).mean(1))
             x = self.bn2(x)
             x = torch.flatten(x, 1)
             x = self.dropout(x)
         x = self.fc(x.float() if self.fp16 else x)
         x = self.features(x)
         norm = torch.norm(x, 2, 1, True)
-        return x, norm
+
+        return x, norm, attention_map
 
 
 def _iresnet(arch, block, layers, pretrained, progress, **kwargs):

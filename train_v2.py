@@ -5,6 +5,7 @@ import os
 import numpy as np
 import torch
 from torch import distributed
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -192,6 +193,7 @@ def main(args):
     )
 
     loss_am = AverageMeter()
+    MSE_loss = nn.MSELoss()
     amp = torch.cuda.amp.grad_scaler.GradScaler(growth_interval=100)
     
     # adaptive hyperparameter
@@ -209,7 +211,7 @@ def main(args):
 
             # feature extractor forward
             global_step += 1
-            local_embeddings, local_norms = backbone(img)
+            local_embeddings, local_norms, attn_maps = backbone(img)
             local_embeddings_div_norm = torch.div(local_embeddings, local_norms)
             
             # # mean & var
@@ -228,10 +230,14 @@ def main(args):
             assert not torch.isnan(local_embeddings_normalize).any()
             local_embeddings_div_norm = torch.reshape(local_embeddings_div_norm, (cfg.batch_size, (1+cfg.num_img_lip), cfg.embedding_size))
             assert not torch.isnan(local_embeddings_div_norm).any()
+            attn_map = torch.reshape(local_embeddings, (cfg.batch_size, (1+cfg.num_img_lip), cfg.embedding_size))
+            assert not torch.isnan(local_embeddings).any()
 
             # loss
             loss_arc: torch.Tensor = torch.tensor(0.0).cuda()
             loss_lip: torch.Tensor = torch.tensor(0.0).cuda()
+            loss_attn: torch.Tensor = torch.tensor(0.0).cuda()
+
             
             if global_step >= 0:
                 # cos_linearity
@@ -242,6 +248,14 @@ def main(args):
                 loss_arc: torch.Tensor = module_partial_fc(local_embeddings[:, 0, :], local_norms[:, 0, :], local_labels, adaptive_weight_list)
                 loss = loss_arc + loss_lip
             
+                # attention loss
+                for stage in attn_maps:
+                    # stage shape [batch,H,W]
+                    stage = stage.view(cfg.batch_size, 1+cfg.num_img_lip, stage.shape[-2], stage.shape[-1])
+                    loss_attn += MSE_loss(stage[:,0,:,:], stage[:,1,:,:])
+
+                loss += loss_attn
+
             # else:
             # loss_arc: torch.Tensor = module_partial_fc(local_embeddings[:, 0, :], local_norms[:, 0, :], local_labels, None)
             # loss = loss_arc
@@ -270,13 +284,11 @@ def main(args):
 
             with torch.no_grad():
                 loss_am.update(loss.item(), 1)
-                callback_logging(global_step, loss_am, loss_arc, loss_lip, epoch, cfg.fp16, lr_scheduler.get_last_lr()[0], amp)
+                callback_logging(global_step, loss_am, loss_arc, loss_lip, loss_attn, epoch, cfg.fp16, lr_scheduler.get_last_lr()[0], amp)
 
                 if global_step % cfg.verbose == 0 and global_step > 0:
                     callback_verification(global_step, backbone)
-            # if idx == 3:
-            #     print('breakkkk')
-            #     break
+
         if cfg.save_all_states:
             checkpoint = {
                 "epoch": epoch + 1,
