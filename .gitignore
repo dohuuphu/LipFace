@@ -6,3 +6,4 @@ ms1mv3_*
 *.png
 results
 validation_mixed/results
+evaluate_*

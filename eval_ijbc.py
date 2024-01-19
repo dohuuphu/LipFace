@@ -33,10 +33,10 @@ warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser(description='do ijb test')
 # general
 parser.add_argument('--model-prefix', default='', help='path to load model.')
-parser.add_argument('--image-path', default='/mnt/SSD7/yuwei/face/ijb/IJBB', type=str, help='')
+parser.add_argument('--image-path', default='/mnt/HDD1/phudh/ICIP/insightface_lipface/data_test/ijb/IJBB', type=str, help='')
 parser.add_argument('--result-dir', default='.', type=str, help='')
 parser.add_argument('--batch-size', default=128, type=int, help='')
-parser.add_argument('--network', default='iresnet50', type=str, help='')
+parser.add_argument('--network', default='r50', type=str, help='') #r50, iresnet50
 parser.add_argument('--job', default='insightface', type=str, help='job name')
 parser.add_argument('--target', default='IJBB', type=str, help='target, set to IJBC or IJBB')
 args = parser.parse_args()
@@ -111,7 +111,7 @@ class Embedding(object):
     def forward_db(self, batch_data):
         imgs = torch.Tensor(batch_data).cuda()
         imgs.div_(255).sub_(0.5).div_(0.5)
-        feat, norm = self.model(imgs)
+        feat, norm,_ = self.model(imgs)
         # feat = feat * norm
         feat = feat.reshape([self.batch_size, 2 * feat.shape[1]])
         return feat.cpu().numpy()

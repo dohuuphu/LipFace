@@ -192,10 +192,19 @@ class MXFaceDataset(Dataset):
         sample = transforms.ToPILImage()(sample) # PIL RGB
         # img_lip = list()
         # img_lip = [augmentation(sample)]# for _ in range(self.num_img_lip)] # [imgLR1, imgLR2, imgLR3]
-        if bool(random.getrandbits(1)):
-            img_lip = [surveillance_augmentation(sample) for _ in range(self.num_img_lip)]
+        # img_lip = [surveillance_augmentation(sample) for _ in range(self.num_img_lip)]
+
+        # side_ratio = np.random.uniform(0.1, 1.0) # 11.2 ~ 112
+        side_ratio = np.random.uniform(0.0625, 0.375) # 7 ~ 42
+        # side_ratio = np.random.choice([0.0625, 0.125, 0.25, 0.375, 0.5])
+
+        random_number = random.choice([1, 2, 3])
+        if random_number == 1 :
+            img_lip = [surveillance_augmentation(sample, side_ratio) for _ in range(self.num_img_lip)]
+        elif random_number == 2 :
+            img_lip = [new_degradation(sample, side_ratio) for _ in range(self.num_img_lip)]
         else:
-            img_lip = [new_degradation(sample) for _ in range(self.num_img_lip)]
+            img_lip = [bicubic_antialiasing(sample, side_ratio) for _ in range(self.num_img_lip)]
 
         img_lip.insert(0, sample) # [imgHR, imgLR1, imgLR2, imgLR3]
         
@@ -207,7 +216,13 @@ class MXFaceDataset(Dataset):
     def __len__(self):
         return len(self.imgidx)
 
-def new_degradation(img):
+def bicubic_antialiasing(img, side_ratio):
+    w, h = img.width, img.height
+    aug_img = img.resize((int(w*side_ratio), int(h*side_ratio)), PIL.Image.BICUBIC)
+    aug_img = aug_img.resize((int(w*side_ratio), int(h*side_ratio)), PIL.Image.LANCZOS)
+    return aug_img
+
+def new_degradation(img, side_ratio):
 
     def apply_random_blur(image):
         # Apply random blur
@@ -246,12 +261,6 @@ def new_degradation(img):
         sum_array = np.clip(sum_array, 0, 255)
 
         return Image.fromarray(sum_array.astype(np.uint8))
-
-
-    w, h = img.width, img.height
-    # side_ratio = np.random.uniform(0.1, 1.0) # 11.2 ~ 112
-    side_ratio = np.random.uniform(0.0625, 0.375) # 7 ~ 56
-    # temp_1 = make_temp(img)
 
     img = apply_random_blur(img)
 
@@ -298,11 +307,9 @@ def random_JPEG_compression(img):
     return PIL.Image.open(outputIoStream)
 
 
-def surveillance_augmentation(img):
+def surveillance_augmentation(img, side_ratio):
     w, h = img.width, img.height
-    # side_ratio = np.random.uniform(0.1, 1.0) # 11.2 ~ 112
-    side_ratio = np.random.uniform(0.0625, 0.375) # 7 ~ 56
-    # side_ratio = np.random.choice([0.0625, 0.125, 0.25, 0.375, 0.5])
+    
     # resize to small
     # interpolation =  PIL.Image.BILINEAR
     interpolation = PIL.Image.NEAREST

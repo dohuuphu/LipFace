@@ -1,7 +1,7 @@
 # This file extract the features of test images.
 import os
 import sys
-os.environ['CUDA_VISIBLE_DEVICES'] = '5'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
@@ -239,13 +239,13 @@ def resnet_forward(ckp_path, loader_list, args):
             for i, (img, img_f) in enumerate(loader):
                 # print(f'{i} / {len(loader)}')
                 img = img.cuda()
-                feat, norm = Resnet(img)
+                feat, norm, _ = Resnet(img)
                 feat = feat * norm
                 feat = feat.cpu().numpy()
                 
                 # including flip
                 img_f = img_f.cuda()
-                feat_f, norm_f = Resnet(img_f)
+                feat_f, norm_f, _ = Resnet(img_f)
                 feat_f = feat_f * norm_f
                 feat_f = feat_f.cpu().numpy()
                 
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # dataset_root = "/mnt/HDD1/yuwei/dataset/Tinyface_we_aligned"
-    dataset_root = "/mnt/SSD7/yuwei/face/aligned_pad_0.1_pad_high"
+    dataset_root = "/mnt/HDD1/phudh/ICIP/insightface_lipface/data_test/aligned_pad_0.1_pad_high"
     gallery_match_img_ID_pairs_path = os.path.join(dataset_root, 'gallery_match_img_ID_pairs.mat')
     probe_img_ID_pairs_path = os.path.join(dataset_root, 'probe_img_ID_pairs.mat')
 
@@ -343,9 +343,9 @@ if __name__ == '__main__':
     #                  "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip100_detach_HRFalse_resize0.2/e4_iter35406_loss_arcface1.84_loss_lip0.000794.pth"] # 67.95
     
     ckp_path_list = [
-                    #  "/mnt/HDD1/yuwei/insightface_lipface/work_dirs/adaface/adaface_ir101_ms1mv3.ckpt"
-                    "/mnt/HDD1/yuwei/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr56_discrete/model_e4.pt"
-                    # "/mnt/HDD1/yuwei/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2/model_e0.pt"
+               "/mnt/HDD1/phudh/ICIP/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr42_MixDegraded_attn_8epoch/model_e7.pt",
+                    "/mnt/HDD1/phudh/ICIP/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr42_originalDegraded_attn/model_e5.pt"
+
                      ]
     # ckp_path_list.sort(key=lambda x: os.path.getmtime(x))
     # ckp_path_list.sort()

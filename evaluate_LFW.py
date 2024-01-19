@@ -1,7 +1,7 @@
 # This file extract the features of test images.
 import os
 import sys
-os.environ['CUDA_VISIBLE_DEVICES'] = '5'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
@@ -100,17 +100,17 @@ class LFW(Dataset):
                     # l = 901, 900!<1*600+300=900 (mismatch)
                     # match
                     img_id, img1_name, img2_name = line.split()
-                    # img1_path = os.path.join(self._img_path, img_id, img_id+'_'+img1_name.zfill(4)+'.png')
-                    # img2_path = os.path.join(self._img_path, img_id, img_id+'_'+img2_name.zfill(4)+'.png')
-                    img1_path = os.path.join(self._img_path, img_id, img_id+'_'+img1_name.zfill(4)+'.jpg')
-                    img2_path = os.path.join(self._img_path, img_id, img_id+'_'+img2_name.zfill(4)+'.jpg')
+                    img1_path = os.path.join(self._img_path, img_id, img_id+'_'+img1_name.zfill(4)+'.png')
+                    img2_path = os.path.join(self._img_path, img_id, img_id+'_'+img2_name.zfill(4)+'.png')
+                    # img1_path = os.path.join(self._img_path, img_id, img_id+'_'+img1_name.zfill(4)+'.jpg')
+                    # img2_path = os.path.join(self._img_path, img_id, img_id+'_'+img2_name.zfill(4)+'.jpg')
                 else:
                     # mismatch
                     img1_id, img1_name, img2_id, img2_name = line.split()
-                    # img1_path = os.path.join(self._img_path, img1_id, img1_id+'_'+img1_name.zfill(4)+'.png')
-                    # img2_path = os.path.join(self._img_path, img2_id, img2_id+'_'+img2_name.zfill(4)+'.png')
-                    img1_path = os.path.join(self._img_path, img1_id, img1_id+'_'+img1_name.zfill(4)+'.jpg')
-                    img2_path = os.path.join(self._img_path, img2_id, img2_id+'_'+img2_name.zfill(4)+'.jpg')
+                    img1_path = os.path.join(self._img_path, img1_id, img1_id+'_'+img1_name.zfill(4)+'.png')
+                    img2_path = os.path.join(self._img_path, img2_id, img2_id+'_'+img2_name.zfill(4)+'.png')
+                    # img1_path = os.path.join(self._img_path, img1_id, img1_id+'_'+img1_name.zfill(4)+'.jpg')
+                    # img2_path = os.path.join(self._img_path, img2_id, img2_id+'_'+img2_name.zfill(4)+'.jpg')
                 
                 samples.append((img1_path, 'HR'))
                 samples.append((img2_path, 'LR'))
@@ -172,12 +172,12 @@ def resnet_forward(Resnet, loader):
         for i, (img, img_f) in enumerate(loader):
             # print(f'{i} / {len(loader)}')
             img = img.cuda()
-            feat, _ = Resnet(img)
+            feat, _, _ = Resnet(img)
             feat = feat.cpu().numpy()
             
             # including flip
             img_f = img_f.cuda()
-            feat_f, _ = Resnet(img_f)
+            feat_f, _, _ = Resnet(img_f)
             feat_f = feat_f.cpu().numpy()
             
             feat = np.concatenate((feat, feat_f), axis=1)
@@ -267,80 +267,12 @@ if __name__ == '__main__':
     parser.add_argument('--network', type=str, default='r50')
     args = parser.parse_args()
     Resnet = get_model(args.network, dropout=0, fp16=False).cuda()
-    # Resnet = IR_101((112, 112)).cuda()
-    # Resnet = backbone_adaface.net.build_model('ir_101').cuda()
-    # 99.73
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc/Resnet34_batchsz128_LR1e-05_m0.3_SGD_train_all_shuffled_VGGface2_03/e0_iter24510_opened_Resnet.pth"
-    
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e0_iter49020_loss_arcface3.66_loss_lin0.000677.pth"
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e1_iter49020_loss_arcface3.28_loss_lin0.000571.pth"
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e2_iter49020_loss_arcface3.95_loss_lin0.000705.pth"
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e3_iter49020_loss_arcface0.69_loss_lin0.000264.pth"
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e4_iter49020_loss_arcface0.86_loss_lin0.000333.pth"
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e5_iter49020_loss_arcface0.54_loss_lin0.000627.pth"
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.01_m0.3_SGD_num_img_lip3_lip0.01_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e6_iter49020_loss_arcface0.12_loss_lin0.000319.pth"
-    
-    # 99.71
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc/ms1mv3_arcface_r34_pretrained.pth"
-    
-    # # 99.71
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.0001_m0.3_SGD_num_img_lip3_lip0.1_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e0_iter49020_loss_arcface1.47_loss_lin0.000000.pth"
-    # # 99.71
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.0001_m0.3_SGD_num_img_lip3_lip0.1_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e1_iter49020_loss_arcface1.16_loss_lin0.000000.pth"
-    # # 99.76
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.0001_m0.3_SGD_num_img_lip3_lip0.1_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e2_iter49020_loss_arcface0.72_loss_lin0.000000.pth"
-    # # 99.78
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lin/Resnet34_batchsz64_LR0.0001_m0.3_SGD_num_img_lip3_lip0.1_squaredFalse_lamb_lin100_detach_HR_norm_shuffled_VGGface2_04_to_11_resize0.2/e3_iter19608_loss_arcface0.14_loss_lin0.000000.pth"
-    # # 99.73
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.1_squaredFalse_detach_HR_norm_resize0.2/e4_iter35406_loss_arcface1.71_loss_lip0.000000.pth"
-    
-    # # 99.75
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.02_squaredFalse_detach_HR_norm_resize0.2/e0_iter35406_loss_arcface2.78_loss_lip0.000045.pth"
-    # # 99.73
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.02_squaredFalse_detach_HR_norm_resize0.2/e1_iter35406_loss_arcface2.24_loss_lip0.000087.pth"
-    # # 99.67
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.02_squaredFalse_detach_HR_norm_resize0.2/e2_iter35406_loss_arcface2.36_loss_lip0.000252.pth"
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.02_squaredFalse_detach_HR_norm_resize0.2/e3_iter35406_loss_arcface2.11_loss_lip0.000372.pth"
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.02_squaredFalse_detach_HR_norm_resize0.2/e4_iter35406_loss_arcface1.79_loss_lip0.000234.pth"
-    # # Resnet.load_state_dict(torch.load(ckp_path))
-    
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_detach_HR_norm_resize0.2/e0_iter35406_loss_arcface2.79_loss_lip0.001038.pth"
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_detach_HR_norm_resize0.2/e1_iter35406_loss_arcface2.26_loss_lip0.000892.pth"
-    # # 99.75
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_detach_HR_norm_resize0.2/e2_iter35406_loss_arcface2.33_loss_lip0.001022.pth"
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_detach_HR_norm_resize0.2/e3_iter35406_loss_arcface2.16_loss_lip0.000775.pth"
-    # # 99.65
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_detach_HR_norm_resize0.2/e4_iter35406_loss_arcface1.82_loss_lip0.001197.pth"
-    
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip1000_detach_HR_norm_resize0.2/e0_iter35406_loss_arcface2.91_loss_lip0.000698.pth"
-    # # 99.66
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip1000_detach_HR_norm_resize0.2/e1_iter35406_loss_arcface2.42_loss_lip0.000384.pth"
-    # # 99.70
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip1000_detach_HR_norm_resize0.2/e2_iter35406_loss_arcface2.44_loss_lip0.000826.pth"
-    # # 99.66
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip1000_detach_HR_norm_resize0.2/e3_iter35406_loss_arcface2.37_loss_lip0.000619.pth"
-    # # 99.73
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip1000_detach_HR_norm_resize0.2/e4_iter35406_loss_arcface1.98_loss_lip0.000468.pth"
-    
-    # # 99.68
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip100_detach_HRFalse_resize0.2/e0_iter35406_loss_arcface2.80_loss_lip0.001211.pth"
-    # # 99.72
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip100_detach_HRFalse_resize0.2/e1_iter35406_loss_arcface2.25_loss_lip0.000730.pth"
-    # # 99.65
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip100_detach_HRFalse_resize0.2/e2_iter35406_loss_arcface2.36_loss_lip0.001329.pth"
-    # # 99.70
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip100_detach_HRFalse_resize0.2/e3_iter35406_loss_arcface2.16_loss_lip0.000850.pth"
-    # # 99.70
-    # ckp_path = "/mnt/data/chiawei/ResolutionInvariant_v4_lipschitz_cosine/ckps/L_arc_L_lip/ms1mv3_arcface_r34_batchsz128_m0.5_LR0.0001_num_img_lip1_lip0.01_squaredFalse_lamb_lip100_detach_HRFalse_resize0.2/e4_iter35406_loss_arcface1.84_loss_lip0.000794.pth"
+   
     ckp_path_list = [
-                     "/mnt/HDD1/yuwei/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr56_discrete/model_e4.pt"
-                    # "/mnt/HDD1/yuwei/insightface_lipface/work_dirs/ms1mv2_r100_lip_finetune/model_e0.pt"
+                    # "/mnt/HDD1/phudh/ICIP/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr42_MixDegraded_attn_8epoch/model_e7.pt",
+                    # "/mnt/HDD1/phudh/ICIP/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr42_originalDegraded_attn/model_e5.pt"
+                    "/mnt/HDD1/phudh/ICIP/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr42_MixDegraded_attn_8epoch_resume/model_e7.pt",
+                    "/mnt/HDD1/phudh/ICIP/insightface_lipface/work_dirs/ms1mv2_r50_lip_ngpu2_p05_lrate001_lr42_MixDegraded_attn_8epoch_resume/model_e6.pt"
                      ]
     
     for ckp_path in ckp_path_list:
@@ -358,12 +290,12 @@ if __name__ == '__main__':
         # img_path = "/DISK2/chiawei/LFW/lfw_correct_aligned_random_margin_padding_0.6/"
 
         # lfw
-        img_path = "/mnt/HDD1/chiawei/datasets/LFW/lfw_correct_aligned"
-        pair_txt_path = "/mnt/HDD1/chiawei/datasets/LFW/LFW_pairs.txt"
+        img_path = "/mnt/HDD1/phudh/ICIP/insightface_lipface/data_test/LFW/lfw_correct_aligned"
+        pair_txt_path = "/mnt/HDD1/phudh/ICIP/insightface_lipface/data_test/LFW/LFW_pairs.txt"
 
         #xqlfw
-        # img_path = "/mnt/SSD7/yuwei/face/XQLFW/xqlfw_aligned_112"
-        # pair_txt_path = "/mnt/SSD7/yuwei/face/XQLFW/xqlfw_pairs.txt"
+        # img_path = "/mnt/HDD1/phudh/ICIP/insightface_lipface/data_test/XQLFW/xqlfw_aligned_112"
+        # pair_txt_path = "/mnt/HDD1/phudh/ICIP/insightface_lipface/data_test/XQLFW/xqlfw_pairs.txt"
 
         lfw = LFW(img_path, pair_txt_path, LR_resolution=112, match_at_LR=False)
 
